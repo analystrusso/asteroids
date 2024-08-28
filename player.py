@@ -4,9 +4,14 @@ from circleshape import *
 
 class Player(CircleShape):
     def __init__(self, x, y):
-        super().__init__(x, y, PLAYER_RADIUS)
+        pygame.sprite.Sprite.__init__(self)
+        CircleShape.__init__(self, x, y, PLAYER_RADIUS)
+
         self.position = pygame.Vector2(x, y)
         self.rotation = 0
+
+        self.image = pygame.Surface((2 * PLAYER_RADIUS, 2 * PLAYER_RADIUS), pygame.SRCALPHA)
+        self.rect = self.image.get_rect(center=self.position)
 
         # in the player class
     def triangle(self):
