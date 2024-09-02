@@ -1,23 +1,15 @@
 import pygame
 import random
-import math
 from constants import *
-from circleshape import *
+from circleshape import CircleShape
+
 
 class Asteroid(CircleShape):
     def __init__(self, x, y, radius):
         super().__init__(x, y, radius)
 
-        magnitude = random.uniform(1,75)
-        angle = random.uniform(0, 2 * math.pi)
-        self.velocity = pygame.Vector2.from_polar((magnitude, angle))
-
-    def check_collision(self, other):
-        if not isinstance(other, CircleShape):
-            return False
-
     def draw(self, screen):
-        pygame.draw.circle(surface=screen, color=ASTEROID_COLOR, center=self.position, radius=self.radius, width=ASTEROID_WIDTH)
-    
+        pygame.draw.circle(screen, "white", self.position, self.radius, 2)
+
     def update(self, dt):
-        self.position += (self.velocity * dt)
+        self.position += self.velocity * dt
