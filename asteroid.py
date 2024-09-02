@@ -12,6 +12,10 @@ class Asteroid(CircleShape):
         angle = random.uniform(0, 2 * math.pi)
         self.velocity = pygame.Vector2.from_polar((magnitude, angle))
 
+    def check_collision(self, other):
+        if not isinstance(other, CircleShape):
+            return False
+
     def draw(self, screen):
         pygame.draw.circle(surface=screen, color=ASTEROID_COLOR, center=self.position, radius=self.radius, width=ASTEROID_WIDTH)
     

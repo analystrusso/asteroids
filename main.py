@@ -1,9 +1,12 @@
 import pygame
+from pygame.locals import *
 from constants import *
 from circleshape import *
 from player import *
 from asteroid import *
 from asteroidfield import *
+from shot import *
+from collision_utls import *
 
 def main():
     pygame.init()
@@ -12,11 +15,14 @@ def main():
     updatable = pygame.sprite.Group()
     drawable = pygame.sprite.Group()
     asteroids = pygame.sprite.Group()
+    asteroid_field = pygame.sprite.Group()
+    shots = pygame.sprite.Group()
 
     # Set container groups
     Player.containers = (updatable, drawable)
     Asteroid.containers = (asteroids, updatable, drawable)
     AsteroidField.containers = (updatable,)
+    Shot.containers = (updatable, drawable)
 
     # Initialize screen
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -48,7 +54,7 @@ def main():
                 print("Game over!")
                 pygame.quit()
                 exit()
-        
+
         screen.fill(color)
         
         for sprite in drawable:
@@ -58,5 +64,6 @@ def main():
         
         dt = clock.tick(60) / 1000
 
+        
 if __name__ == "__main__":
     main()
