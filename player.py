@@ -36,6 +36,18 @@ class Player(CircleShape):
         if keys[pygame.K_SPACE]:
             self.shoot()
 
+        self.check_boundaries()
+    
+    def check_boundaries(self):
+        if self.position.x < 0:
+            self.position.x = 0
+        elif self.position.x > SCREEN_WIDTH:
+            self.position.x = SCREEN_WIDTH
+        if self.position.y < 0:
+            self.position.y = 0
+        elif self.position.y > SCREEN_HEIGHT:
+            self.position.y = SCREEN_HEIGHT
+
     def shoot(self):
         if self.shoot_timer > 0:
             return
