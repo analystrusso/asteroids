@@ -1,5 +1,6 @@
 import sys
 import pygame
+import os
 from constants import *
 from player import Player
 from asteroid import Asteroid
@@ -9,6 +10,11 @@ from shot import Shot
 
 def main():
     pygame.init()
+    pygame.font.init()
+    
+    score = 0
+    score_increment = 100
+    
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
 
@@ -29,11 +35,11 @@ def main():
     dt = 0
 
     while True:
+        font = pygame.font.Font("Major_Mono_Display/MajorMonoDisplay-Regular.ttf", 36)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
             
-
         for obj in updatable:
             obj.update(dt)
 
@@ -44,6 +50,7 @@ def main():
 
             for shot in shots:
                 if asteroid.collides_with(shot):
+                    score += score_increment
                     shot.kill()
                     asteroid.split()
     
@@ -51,6 +58,9 @@ def main():
 
         for obj in drawable:
             obj.draw(screen)
+
+        score_text = font.render(f"Score: {score}", True, (255, 255, 255))
+        screen.blit(score_text, (10, 10))
 
         pygame.display.flip()
 
