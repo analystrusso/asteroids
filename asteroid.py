@@ -11,5 +11,27 @@ class Asteroid(CircleShape):
     def draw(self, screen):
         pygame.draw.circle(screen, "white", self.position, self.radius, 2)
 
+    def split(self):
+        self.kill()
+        if self.radius <= ASTEROID_MIN_RADIUS:
+            return
+        else:
+            random_angle = random.uniform(20, 50)
+            vector_1 = self.velocity.rotate(random_angle)
+            vector_2 = self.velocity.rotate(-random_angle)
+            new_velocity = self.velocity * ASTEROID_SPLIT_FACTOR
+            new_asteroid_radius = self.radius - ASTEROID_MIN_RADIUS
+
+            new_asteroid_1 = Asteroid(self.position.x, self.position.y, new_asteroid_radius)
+            new_asteroid_2 = Asteroid(self.position.x, self.position.y, new_asteroid_radius)
+
+            new_asteroid_1.set_velocity(vector_1)
+            new_asteroid_2.set_velocity(vector_2)
+
+            for group in Asteroid.containers:
+                group.add(new_asteroid_1)
+                group.add(new_asteroid_2)
+
+
     def update(self, dt):
         self.position += self.velocity * dt
