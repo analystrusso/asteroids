@@ -1,72 +1,24 @@
-import sys
-import pygame
-import os
-from constants import *
-from player import Player
-from asteroid import Asteroid
-from asteroidfield import AsteroidField
-from shot import Shot
-
-
-def main():
-    pygame.init()
-    pygame.font.init()
-    
-    score = 0
-    score_increment = 100
-    
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    clock = pygame.time.Clock()
-
-    updatable = pygame.sprite.Group()
-    drawable = pygame.sprite.Group()
-    asteroids = pygame.sprite.Group()
-    shots = pygame.sprite.Group()
-
-    Asteroid.containers = (asteroids, updatable, drawable)
-    Shot.containers = (shots, updatable, drawable)
-    AsteroidField.containers = updatable
-    asteroid_field = AsteroidField()
-
-    Player.containers = (updatable, drawable)
-
-    player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-
-    dt = 0
-
-    while True:
-        font = pygame.font.Font("Major_Mono_Display/MajorMonoDisplay-Regular.ttf", 36)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                return
-            
-        for obj in updatable:
-            obj.update(dt)
-
-        for asteroid in asteroids:
-            if asteroid.collides_with(player):
-                print("Game over!")
-                sys.exit()
-
-            for shot in shots:
-                if asteroid.collides_with(shot):
-                    score += score_increment
-                    shot.kill()
-                    asteroid.split()
-    
-        screen.fill("black")
-
-        for obj in drawable:
-            obj.draw(screen)
-
-        score_text = font.render(f"Score: {score}", True, (255, 255, 255))
-        screen.blit(score_text, (10, 10))
-
-        pygame.display.flip()
-
-        # limit the framerate to 60 FPS
-        dt = clock.tick(60) / 1000
-
+import pygame as pg
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT
+from states import Menu, Game, States
 
 if __name__ == "__main__":
-    main()
+    settings = {
+        "size": (SCREEN_WIDTH, SCREEN_HEIGHT),
+        "fps": 60
+    }
+
+    # Initialize and set up the Control instance
+    app = States(**settings)
+    
+    # Create the state instances and pass them to the Control class
+    state_dict = {
+        "menu": Menu(),
+        "game": Game()
+    }
+    
+    # Set up initial state and start the game loop
+    app.setup_states(state_dict, "menu")
+    app.main_game_loop()
+
+    pg.quit()

@@ -7,9 +7,12 @@ from circleshape import CircleShape
 class Asteroid(CircleShape):
     def __init__(self, x, y, radius):
         super().__init__(x, y, radius)
+        self.image = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, "white", (radius, radius), radius, 2)
+        self.rect = self.image.get_rect(center=(x, y))
 
     def draw(self, screen):
-        pygame.draw.circle(screen, "white", self.position, self.radius, 2)
+        screen.blit(self.image, self.rect)
 
     def split(self):
         self.kill()
@@ -35,3 +38,6 @@ class Asteroid(CircleShape):
 
     def update(self, dt):
         self.position += self.velocity * dt
+        self.rect.center = self.position
+        # Call the base class update if needed, typically for sprite management
+        super().update(dt)
