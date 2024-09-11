@@ -1,6 +1,6 @@
 import pygame as pg
 from xml.sax import ErrorHandler
-from main import *
+#from main import *
 import os
 from asteroidfield import *
 from player import *
@@ -71,7 +71,7 @@ class Game(States):
             'asteroids': [(a.position.x, a.position.y, a.velocity.x, a.velocity.y, a.radius) for a in self.asteroids],
             'shots': [(s.position.x, s.position.y, s.velocity.x, s.velocity.y) for s in self.shots],
             'player': (self.player.position.x, self.player.position.y, self.player.velocity.x, self.player.velocity.y),
-            'asteroid_field': self.asteroid_field.get_state()  # Customize based on your needs
+            'asteroid_field': self.asteroid_field.get_state()
         }
 
     def restore_state(self):
@@ -261,7 +261,7 @@ class Pause(States):
     def get_event(self, event):
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_RETURN: 
-                print('Pause State keydown')
+                print('Game State keydown')
                 self.done = True
                 self.next = "game"
 
@@ -285,7 +285,7 @@ class Control:
         self.done = False
         self.screen = pg.display.set_mode(self.size)
         self.clock = pg.time.Clock()
-        self.fps = settings.get("fps", 60)
+        #self.fps = settings.get("fps", 60)
 
     def setup_states(self, state_dict_param, start_state):
         self.state_dict = state_dict_param
@@ -333,27 +333,3 @@ class Control:
             except Exception as e:
                 ErrorHandler.handle_error("Error updating display", e)
                 self.done = True
-
-
-# Settings for the game
-settings = {
-    "size": (SCREEN_WIDTH, SCREEN_HEIGHT),
-    "fps": 60
-}
-
-if __name__ == "__main__":
-    try:
-        app = Control(**settings)
-        state_dict = {
-            "menu": Menu(),
-            "game": Game(),
-            "pause": Pause(),
-            "game_over": GameOver()
-        }
-
-        app.setup_states(state_dict, "menu")
-        app.main_game_loop()
-    
-    finally:
-        pg.quit()
-        sys.exit()
