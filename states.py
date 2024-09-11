@@ -1,3 +1,4 @@
+import pygame as pg
 from xml.sax import ErrorHandler
 from main import *
 import os
@@ -303,6 +304,11 @@ class Control:
                     self.state.startup()
                     if hasattr(self.state, "is_initialized"):
                         self.state.is_initialized = True
+
+                if previous_state_name == "game" and self.state_name == "game_over":
+                    # Set the final score in the GameOver state
+                    self.state.set_score(self.state_dict["game"].score)
+
                 self.state.previous = previous_state_name
                 
     def update(self, dt):

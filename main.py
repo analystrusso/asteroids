@@ -1,6 +1,6 @@
 import pygame as pg
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT
-from states import Menu, Game, States
+from states import GameOver, Menu, Game, Pause, States
 
 if __name__ == "__main__":
     settings = {
@@ -14,8 +14,10 @@ if __name__ == "__main__":
     # Create the state instances and pass them to the Control class
     state_dict = {
         "menu": Menu(),
-        "game": Game()
-    }
+        "game": Game(),
+        "pause": Pause(),
+        "game_over": GameOver()
+}
     
     # Set up initial state and start the game loop
     app.setup_states(state_dict, "menu")
