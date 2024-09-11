@@ -1,6 +1,7 @@
+from xml.sax import ErrorHandler
+from main import *
 import os
 from asteroidfield import *
-from main import *
 from player import *
 from shot import *
 from constants import *
@@ -108,10 +109,6 @@ class Game(States):
         if self.is_initialized:
             self.save_state()
             self.is_initialized = False
-            self.asteroids.empty()  # Clear all asteroids
-            self.shots.empty()  # Clear all shots
-            self.updatable.empty()  # Clear all updatable objects
-            self.drawable.empty()  # Clear all drawable objects
 
     def resume(self):
         self.restore_state()
@@ -173,7 +170,7 @@ class GameOver(States):
         self.final_score = score
 
     def startup(self):
-        print('starting Menu state stuff')
+        print('starting Gameover state stuff')
 
     def cleanup(self):
         pass
@@ -209,6 +206,7 @@ class Menu(States):
             return None
 
     def startup(self):
+        self.is_initialized = None
         print('starting Menu state stuff')
 
     def cleanup(self):
@@ -219,7 +217,7 @@ class Menu(States):
 
     def get_event(self, event):
         if event.type == pg.KEYDOWN:
-            if event.key == pg.K_RETURN:  # Example: press Enter to start the game
+            if event.key == pg.K_RETURN:
                 print('Menu State keydown')
                 self.done = True
                 self.next = "game"
@@ -250,8 +248,9 @@ class Pause(States):
             return None
 
     def startup(self):
-        print('starting Menu state stuff')
-
+        self.is_initialized = None
+        print('starting Pause state stuff')
+        
     def cleanup(self):
         pass
 
@@ -260,14 +259,14 @@ class Pause(States):
 
     def get_event(self, event):
         if event.type == pg.KEYDOWN:
-            if event.key == pg.K_RETURN:  # Example: press Enter to start the game
+            if event.key == pg.K_RETURN: 
                 print('Pause State keydown')
                 self.done = True
                 self.next = "game"
 
     def draw(self, screen):
         screen.fill((0, 0, 0))
-        if self.font:  # Check if font is initialized
+        if self.font:  
             text = self.font.render("Press Enter to Resume", True, (255, 255, 255))
             screen.blit(text, (50, 100))
         else:
@@ -294,27 +293,18 @@ class Control:
         self.state.startup()
 
     def flip_state(self):
-        self.state.done = False
-        previous_state_name = self.state_name
-        self.state_name = self.state.next
-        self.state.cleanup()
-
-        self.state = self.state_dict[self.state_name]
-
-        if not hasattr(self.state, "is_initialized") or not self.state.is_initialized:
-            self.state.startup()
-            if hasattr(self.state, "is_initialized"):
-                self.state.is_initialized = True
-
-        self.state.previous = previous_state_name
-
-        if self.state_name == "game_over":
-            game_state = self.state_dict["game"]
-            final_score = game_state.score
-            self.state.set_score(final_score)
-        else:
-            self.state = self.state_dict[self.state_name]
-
+        if self.state:
+            self.state.cleanup()
+            previous_state_name = self.state_name
+            self.state_name = self.state.next
+            self.state = self.state_dict.get(self.state_name)
+            if self.state:
+                if not hasattr(self.state, "is_initialized") or not self.state.is_initialized:
+                    self.state.startup()
+                    if hasattr(self.state, "is_initialized"):
+                        self.state.is_initialized = True
+                self.state.previous = previous_state_name
+                
     def update(self, dt):
         if self.state.done:
             self.flip_state()
@@ -335,7 +325,7 @@ class Control:
             try:
                 pg.display.update()
             except Exception as e:
-                print(f"Error updating display: {e}")
+                ErrorHandler.handle_error("Error updating display", e)
                 self.done = True
 
 
@@ -346,15 +336,18 @@ settings = {
 }
 
 if __name__ == "__main__":
-    app = Control(**settings)
-    state_dict = {
-        "pause": Pause(),
-        "menu": Menu(),
-        "game": Game(),
-        "game_over": GameOver()
-    }
+    try:
+        app = Control(**settings)
+        state_dict = {
+            "menu": Menu(),
+            "game": Game(),
+            "pause": Pause(),
+            "game_over": GameOver()
+        }
 
-    app.setup_states(state_dict, "menu")
-    app.main_game_loop()
-    #pg.quit()
-    sys.exit()
+        app.setup_states(state_dict, "menu")
+        app.main_game_loop()
+    
+    finally:
+        pg.quit()
+        sys.exit()
