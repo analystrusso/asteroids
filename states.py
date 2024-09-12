@@ -11,13 +11,15 @@ import sys
 
 class States:
     def __init__(self):
+        self.is_initialized = False
         self.done = False
         self.quit = False
         self.next = None
         self.previous = None
 
     def startup(self):
-        pass
+        self.is_initialized = True
+        self.done = False
 
     def cleanup(self):
         pass
@@ -54,62 +56,75 @@ class Game(States):
 
     def startup(self):
         """Initialize Game state."""
-        if not self.is_initialized:
-            pg.font.init()
-
-            Asteroid.containers = (self.asteroids, self.updatable, self.drawable)
-            Shot.containers = (self.shots, self.updatable, self.drawable)
-            AsteroidField.containers = self.updatable
-            self.asteroid_field = AsteroidField()
-            Player.containers = (self.updatable, self.drawable)
+        super().startup()
+        self.is_initialized = True
+        pg.font.init()
+        Asteroid.containers = (self.asteroids, self.updatable, self.drawable)
+        Shot.containers = (self.shots, self.updatable, self.drawable)
+        AsteroidField.containers = self.updatable
+        self.asteroid_field = AsteroidField()
+        Player.containers = (self.updatable, self.drawable)
+        if not self.player:
             self.player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
-            self.is_initialized = True
+            
 
     def save_state(self):
         """Save the current state of game entities."""
-        self.saved_state = {
-            'asteroids': [(a.position.x, a.position.y, a.velocity.x, a.velocity.y, a.radius) for a in self.asteroids],
-            'shots': [(s.position.x, s.position.y, s.velocity.x, s.velocity.y) for s in self.shots],
-            'player': (self.player.position.x, self.player.position.y, self.player.velocity.x, self.player.velocity.y),
-            'asteroid_field': self.asteroid_field.get_state()
-        }
+        if self.player and self.asteroids and  self.shots and self.asteroid_field:
+            self.saved_state = {
+                'asteroids': [(a.position.x, a.position.y, a.velocity.x, a.velocity.y, a.radius) for a in self.asteroids],
+                'shots': [(s.position.x, s.position.y, s.velocity.x, s.velocity.y) for s in self.shots],
+                'player': (self.player.position.x, self.player.position.y, self.player.velocity.x, self.player.velocity.y),
+                'asteroid_field': self.asteroid_field.get_state()
+            }
+        else:
+            print("Error: Player is not initialized")
 
     def restore_state(self):
         """Restore the saved state of game entities."""
         if not self.saved_state:
             return
 
+        self.player = None
+
         # Restore asteroids
         self.asteroids.empty()
         for x, y, vx, vy, radius in self.saved_state['asteroids']:
             asteroid = Asteroid(x, y, radius)
             asteroid.set_velocity(
-                pg.Vector2(vx, vy))  # Assuming set_velocity is a method to set the asteroid's velocity
+                pg.Vector2(vx, vy))
             self.asteroids.add(asteroid)
 
         # Restore shots
         self.shots.empty()
         for x, y, vx, vy in self.saved_state['shots']:
             shot = Shot(x, y)
-            shot.set_velocity(pg.Vector2(vx, vy))  # Assuming set_velocity is a method to set the shot's velocity
+            shot.set_velocity(pg.Vector2(vx, vy))
             self.shots.add(shot)
 
         # Restore player
-        if self.player:
-            x, y, vx, vy = self.saved_state['player']
-            self.player.position = pg.Vector2(x, y)
-            self.player.set_velocity(
-                pg.Vector2(vx, vy))  # Assuming set_velocity is a method to set the player's velocity
+        x, y, vx, vy = self.saved_state['player']
+        self.player = Player(x, y)
+        self.player.set_velocity(pg.Vector2(vx, vy))
 
         # Restore asteroid field state
         if self.asteroid_field:
-            self.asteroid_field.set_state(self.saved_state['asteroid_field'])  # Customize based on your needs
+            self.asteroid_field.set_state(self.saved_state['asteroid_field'])
 
-    def cleanup(self):
-        """Clean up Game state."""
-        if self.is_initialized:
-            self.save_state()
-            self.is_initialized = False
+            """Clean up Game state."""
+            # Properly remove or cleanup game-specific resources
+            if self.player:
+                print("hi from player")
+                self.player = None  # Remove the player object
+                self.is_initialized = False
+            
+            if self.asteroid_field:
+                print("hi from asteroidfield")
+                self.asteroid_field = None  # Remove the asteroid field object
+
+            # Reset any container lists or other resources if required
+            self.asteroids.empty()
+            self.shots.empty()   
 
     def resume(self):
         self.restore_state()
@@ -117,7 +132,7 @@ class Game(States):
 
     def get_event(self, event):
         if event.type == pg.KEYDOWN:
-            if event.key == pg.K_ESCAPE:  # Example: press Enter to start the game
+            if event.key == pg.K_ESCAPE: 
                 print('Menu State keydown')
                 self.done = True
                 self.next = "pause"
@@ -170,18 +185,12 @@ class GameOver(States):
     def set_score(self, score):
         self.final_score = score
 
-    def startup(self):
-        print('starting Gameover state stuff')
-
-    def cleanup(self):
-        pass
-
     def update(self, screen, dt):
         self.draw(screen)
 
     def draw(self, screen):
         screen.fill((0, 0, 0))
-        if self.font:  # Check if font is initialized
+        if self.font:
             text = self.font.render("Game Over", True, (255, 255, 255))
             score_text = self.font.render(f"Score: {self.final_score}", True, (255, 255, 255))
             screen.blit(text, (50, 100))
@@ -205,13 +214,6 @@ class Menu(States):
         except Exception as e:
             print(f"Error loading font: {e}")
             return None
-
-    def startup(self):
-        self.is_initialized = None
-        print('starting Menu state stuff')
-
-    def cleanup(self):
-        pass
 
     def update(self, screen, dt):
         self.draw(screen)
@@ -247,13 +249,6 @@ class Pause(States):
         except Exception as e:
             print(f"Error loading font: {e}")
             return None
-
-    def startup(self):
-        self.is_initialized = None
-        print('starting Pause state stuff')
-        
-    def cleanup(self):
-        pass
 
     def update(self, screen, dt):
         self.draw(screen)
@@ -296,20 +291,19 @@ class Control:
     def flip_state(self):
         if self.state:
             self.state.cleanup()
-            previous_state_name = self.state_name
-            self.state_name = self.state.next
-            self.state = self.state_dict.get(self.state_name)
-            if self.state:
-                if not hasattr(self.state, "is_initialized") or not self.state.is_initialized:
-                    self.state.startup()
-                    if hasattr(self.state, "is_initialized"):
-                        self.state.is_initialized = True
-
-                if previous_state_name == "game" and self.state_name == "game_over":
-                    # Set the final score in the GameOver state
-                    self.state.set_score(self.state_dict["game"].score)
-
-                self.state.previous = previous_state_name
+        previous_state_name = self.state_name
+        self.state_name = self.state.next
+        self.state = self.state_dict.get(self.state_name)
+        self.state.startup()
+        self.state.is_initialized = True
+    
+        if previous_state_name == "game" and self.state_name == "game_over":
+            # Set the final score in the GameOver state
+            self.state.set_score(self.state_dict["game"].score)
+    
+        if previous_state_name == "game_over" and self.state_name == "game":
+            # Reset the game state
+            self.state_dict["game"].reset()
                 
     def update(self, dt):
         if self.state.done:
